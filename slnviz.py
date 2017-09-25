@@ -14,8 +14,9 @@ import os
 solution_path = "."
 
 class Project(object):
-    def __init__(self, name, id):
+    def __init__(self, name, filename, id):
         self.name = name
+        self.filename = filename
         self.id = id
         self.dependant_ids = []
 
@@ -60,7 +61,7 @@ def analyze_projects_in_solution(lines):
             # solution folders are declared with a virtual filename, same as
             # node-name. ignore these entries!
             if name != filename:
-                current_project = Project(name, id)
+                current_project = Project(name, filename, id)
                 projects.append(current_project)
 
         m = project_dependency_declaration.match(line)

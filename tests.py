@@ -45,13 +45,13 @@ EndProject
 
     def test_project_id(self):
 
-        proj = slnviz.Project("SuperOffice.Test.Name", "123-234-345")
+        proj = slnviz.Project("SuperOffice.Test.Name", "stn.csproj", "123-234-345")
 
         self.assertEqual("SuperOffice_Test_Name", proj.get_friendly_id())
 
     def test_graphviz_output(self):
-        proj1 = slnviz.Project("Project.SO.Main", "123-234")
-        proj2 = slnviz.Project("Project.SO.Installer", "234-345")
+        proj1 = slnviz.Project("Project.SO.Main", "psomain.csproj", "123-234")
+        proj2 = slnviz.Project("Project.SO.Installer", "psoinstaller.vcxproj", "234-345")
 
         proj1.add_dependency(proj2.id);
 
