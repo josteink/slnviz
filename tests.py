@@ -44,3 +44,18 @@ class Tests(unittest.TestCase):
         proj = slnviz.Project("SuperOffice.Test.Name", "123-345-456")
 
         self.assertEquals("123345456", proj.get_friendly_id())
+
+    def test_graphviz_output(self):
+        proj1 = slnviz.Project("Project 1", "123-234")
+        proj2 = slnviz.Project("Project 2", "234-345")
+
+        proj1.add_dependency(proj2.id);
+
+        txt = slnviz.render_dot_file([proj1, proj2])
+
+        # has proper IDs
+        self.assertEqual(True, "123234" in txt)
+        self.assertEqual(True, "234345" in txt)
+
+        # has proper labels
+        self.assertEqual(True, "label=\"Project 1\"" in txt)

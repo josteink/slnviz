@@ -14,24 +14,15 @@ class Project(object):
         self.id = id
         self.dependant_ids = []
 
-    def get_friendly_id(self):
-        return self.id.replace("-", "")
+    def filter_id(self, id):
+        return id.replace("-", "")
         
-# todo:
-# - process one line at a time
-# - detect delimiters
-#   - Project declaration
-#
-#   Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "License", "License", "{A96EA6A0-2464-416D-8E69-3A06A7288A60}"
-#                                                        Name                   ID
-#
-#   - Project Dependency
-#
-# 	ProjectSection(ProjectDependencies) = postProject
-#		{62AB4DC9-9913-4686-9F66-4BD3F4C7B119} = {62AB4DC9-9913-4686-9F66-4BD3F4C7B119}
-#       EndProjectSection
-#
-# - build it all
+    def get_friendly_id(self):
+        return self.filter_id(self.id)
+
+    def add_dependency(self, id):
+        self.dependant_ids.append(self.filter_id(id))
+
 
 def get_lines_from_file(file):
     with open(file, 'r') as f:
@@ -39,9 +30,11 @@ def get_lines_from_file(file):
         lines = contents.split("\n")
         return lines
 
+
 project_declaration = re.compile("\s*Project\(\"{.*}\"\) = \"(.*)\", \".*\", \"{(.*)}\"")
 project_dependency_declaration = re.compile("\s*{(.*)} = {(.*)}")
-    
+
+
 def analyze_projects_in_solution(lines):
 
     projects = []
@@ -66,8 +59,26 @@ def analyze_projects_in_solution(lines):
 
 
 def render_dot_file(projects):
-    # TODO
-    return
+    lines = []
+
+    lines.append("digraph {")
+    lines.append("    rankdir=\"TB\"")
+
+    # define projects
+    # create nodes like this
+    #  A [ label="First Node" shape="circle" ]
+    for project in projects:
+        id = project.get_friendly_id()
+        lines.append("    {0} [ label=\"{1}\" ]".format(id, project.name))
+
+    # apply dependencies
+    for project in projects:
+        for id in project.dependant_ids:
+            lines.append("{0}->{1}".format(project.get_friendly_id(), id))
+    
+    lines.append("}")
+    
+    return "\n".join(lines)
 
 
 def process(sln_file, dot_file):
