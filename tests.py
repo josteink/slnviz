@@ -41,21 +41,21 @@ class Tests(unittest.TestCase):
 
     def test_project_id(self):
 
-        proj = slnviz.Project("SuperOffice.Test.Name", "123-345-456")
+        proj = slnviz.Project("SuperOffice.Test.Name", "123-234-345")
 
-        self.assertEquals("123345456", proj.get_friendly_id())
+        self.assertEqual("SuperOffice_Test_Name", proj.get_friendly_id())
 
     def test_graphviz_output(self):
-        proj1 = slnviz.Project("Project 1", "123-234")
-        proj2 = slnviz.Project("Project 2", "234-345")
+        proj1 = slnviz.Project("Project.SO.Main", "123-234")
+        proj2 = slnviz.Project("Project.SO.Installer", "234-345")
 
         proj1.add_dependency(proj2.id);
 
         txt = slnviz.render_dot_file([proj1, proj2])
 
-        # has proper IDs
-        self.assertEqual(True, "123234" in txt)
-        self.assertEqual(True, "234345" in txt)
+        # has no trace of dotted IDs
+        self.assertEqual(True, "Project_SO_Main" in txt)
+        self.assertEqual(True, "Project_SO_Installer" in txt)
 
         # has proper labels
-        self.assertEqual(True, "label=\"Project 1\"" in txt)
+        self.assertEqual(True, "label=\"Project.SO.Main\"" in txt)
