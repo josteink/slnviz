@@ -40,7 +40,7 @@ def get_lines_from_file(file):
         return lines
 
 
-project_declaration = re.compile("\s*Project\(\"{.*}\"\) = \"(.*)\", \".*\", \"{(.*)}\"")
+project_declaration = re.compile("\s*Project\(\"{.*}\"\) = \"(.*)\", \"(.*)\", \"{(.*)}\"")
 project_dependency_declaration = re.compile("\s*{(.*)} = {(.*)}")
 
 
@@ -53,9 +53,12 @@ def analyze_projects_in_solution(lines):
 
         m = project_declaration.match(line)
         if m is not None:
-            [name, id] = m.groups()
-            current_project = Project(name, id)
-            projects.append(current_project)
+            [name, filename, id] = m.groups()
+            # solution folders are declared with a virtual filename, same as
+            # node-name. ignore these entries!
+            if name != filename:
+                current_project = Project(name, id)
+                projects.append(current_project)
 
         m = project_dependency_declaration.match(line)
         if m is not None:

@@ -7,8 +7,9 @@ class Tests(unittest.TestCase):
         m = slnviz.project_declaration.match(decl)
 
         self.assertNotEqual(None, m)
-        [name, id] = m.groups()
+        [name, filename, id] = m.groups()
         self.assertEqual("License", name)
+        self.assertEqual("License", filename)
         self.assertEqual("A96EA6A0-2464-416D-8E69-3A06A7288A60", id)
 
     def test_parse_project_dependency_regexp(self):
@@ -22,7 +23,10 @@ class Tests(unittest.TestCase):
         self.assertEqual("62AB4DC9-9913-4686-9F66-4BD3F4C7B119", id1)
 
     def test_parse_solution_contents(self):
-        decl = """    Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MakeDistribution", "Clients\CS\MakeDistribution\MakeDistribution.vcxproj", "{2E668CA6-63BC-4F85-8D9D-5287D80C7D6B}"
+        decl = """
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DCF", "DCF", "{E6CAB0B1-AB81-40E4-9F7B-E777B2A706DE}"
+EndProject
+        Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MakeDistribution", "Clients\CS\MakeDistribution\MakeDistribution.vcxproj", "{2E668CA6-63BC-4F85-8D9D-5287D80C7D6B}"
         ProjectSection(ProjectDependencies) = postProject
     {5A1B76E3-A314-4956-A50F-45475A5F330A} = {5A1B76E3-A314-4956-A50F-45475A5F330A}
         EndProjectSection
