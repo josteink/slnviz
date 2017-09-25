@@ -8,7 +8,10 @@
 
 from argparse import ArgumentParser
 import re
+import os
 
+
+solution_path = "."
 
 class Project(object):
     def __init__(self, name, id):
@@ -99,7 +102,21 @@ def render_dot_file(projects):
     return "\n".join(lines)
 
 
+def get_unix_path(file):
+    return file.replace("\\", "/")
+
+
+def get_directory(file):
+    unix_file = get_unix_path(file)
+    return os.path.split(unix_file)[0]
+
+
+def set_working_basedir(sln_file):
+    solution_path = get_directory(get_unix_path(sln_file))
+
+
 def process(sln_file, dot_file):
+    set_working_basedir(sln_file)
     lines = get_lines_from_file(sln_file)
     projects = analyze_projects_in_solution(lines)
     txt = render_dot_file(projects)
