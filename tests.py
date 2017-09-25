@@ -33,3 +33,14 @@ class Tests(unittest.TestCase):
         projs = slnviz.analyze_projects_in_solution(lines)
 
         self.assertEqual(2, len(projs))
+
+        self.assertEqual("MakeDistribution", projs[0].name)
+        self.assertEqual(1, len(projs[0].dependant_ids))
+        self.assertEqual("Admin", projs[1].name)
+        self.assertEqual(0, len(projs[1].dependant_ids))
+
+    def test_project_id(self):
+
+        proj = slnviz.Project("SuperOffice.Test.Name", "123-345-456")
+
+        self.assertEquals("123345456", proj.get_friendly_id())

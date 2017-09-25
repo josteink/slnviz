@@ -13,6 +13,9 @@ class Project(object):
         self.name = name
         self.id = id
         self.dependant_ids = []
+
+    def get_friendly_id(self):
+        return self.id.replace("-", "")
         
 # todo:
 # - process one line at a time
