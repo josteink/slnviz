@@ -44,6 +44,7 @@ class Project(object):
         self.dependant_projects = []
         self.missing_project_ids = []
         self.has_missing_projects = False
+        self.is_missing_project = False
 
     def filter_id(self, id):
         return id.replace("-", "")
@@ -98,8 +99,14 @@ class Project(object):
             if project is None:
                 self.has_missing_projects = True
                 self.missing_project_ids.append(id)
-            else:
-                self.dependant_projects.append(project)
+
+                # track missing dep
+                missing_project_id = "Missing_" + id.replace("-", "")
+                project = Project(missing_project_id, missing_project_id, missing_project_id)
+                project.is_missing_project = True
+                projects.append(project)
+                
+            self.dependant_projects.append(project)
 
     def remove_transitive_dependencies(self):
         # if A depends on B & C, and
