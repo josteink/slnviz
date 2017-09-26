@@ -206,6 +206,18 @@ def remove_transitive_dependencies(projects):
     for project in projects:
         project.remove_transitive_dependencies()
 
+
+def filter_projects(rx, projects):
+    result = []
+
+    for project in projects:
+        if not rx.match(str.lower(project.name)):
+            result.append(project)
+        else:
+            debug("Info: Excluding project {0}.".format(project.name))
+
+    return result
+
         
 def render_dot_file(projects):
     lines = []
@@ -257,13 +269,17 @@ def render_dot_file(projects):
     return "\n".join(lines)
 
 
-def process(sln_file, dot_file, keep_deps):
+def process(sln_file, dot_file, exclude, keep_deps):
     set_working_basedir(sln_file)
     lines = get_lines_from_file(sln_file)
     projects = analyze_projects_in_solution(lines)
 
     if not keep_deps:
         remove_transitive_dependencies(projects)
+
+    if exclude:
+        excluder = re.compile(exclude)
+        projects = filter_projects(excluder, projects)
         
     txt = render_dot_file(projects)
     
@@ -281,12 +297,13 @@ def main():
     p.add_argument("--output", "-o", help="The file to write to.")
     p.add_argument("--keep-declared-deps", "-k", action="store_true", help="Don't remove redundant, transisitive dependencies in post-processing.")
     p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+    p.add_argument("--exclude", "-e", help="Filter projects matching this expresison from the graph")
 
     args = p.parse_args()
 
     debug_output = args.verbose
     
-    process(args.input, args.output, args.keep_declared_deps)
+    process(args.input, args.output, args.exclude, args.keep_declared_deps)
     
 
 # don't run from unit-tests
