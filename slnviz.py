@@ -213,17 +213,32 @@ def render_dot_file(projects):
     lines.append("digraph {")
     lines.append("    rankdir=\"TB\"")
     lines.append("")
-    lines.append("# project declarations")
+    lines.append("    # apply theme")
+    lines.append("    bgcolor=\"#222222\"")
+    lines.append("")
+    lines.append("    // defaults for edges and nodes can be specified")    
+    lines.append("    node [ color=\"#ffffff\" fontcolor=\"#ffffff\" ]")
+    lines.append("    edge [ color=\"#ffffff\" ]")
+    lines.append("")
+    lines.append("    # project declarations")
 
     # define projects
     # create nodes like this
     #  A [ label="First Node" shape="circle" ]
     for project in projects:
         id = project.get_friendly_id()
-        lines.append("    {0} [ label=\"{1}\" ]".format(id, project.name))
+
+        styling = ""
+        if project.is_missing_project:
+            styling = " fillcolor=\"#f22430\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+        elif project.has_missing_projects:
+            styling = " fillcolor=\"#c2c230\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+            
+        lines.append("    {0} [ label=\"{1}\" {2} ]".format(id, project.name, styling))
 
     # apply dependencies
     lines.append("")
+    lines.append("    # project dependencies")
     for project in projects:
         proj1_id = project.get_friendly_id()
         for proj2 in project.dependant_projects:
@@ -231,7 +246,10 @@ def render_dot_file(projects):
                 print("WARNING: Unable to resolve dependency with ID {0} for project {1}".format(id, project.name))
             else:
               proj2_id = proj2.get_friendly_id()
-              lines.append("    {0} -> {1}".format(proj1_id, proj2_id))
+              styling = ""
+              if proj2.is_missing_project:
+                  styling = " [color=\"#f22430\"]"
+              lines.append("    {0} -> {1}{2}".format(proj1_id, proj2_id, styling))
     
     lines.append("")
     lines.append("}")
