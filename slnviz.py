@@ -108,19 +108,23 @@ class Project(object):
         
         # clone list to have separate object to work on
         project_deps = self.dependant_projects[:]
+
+        # investigate each direct sub-dependency as its own tree
         for dep in self.dependant_projects:
+
+            # calculate all dependencies for this one tree
             nested_deps = dep.get_nested_dependencies()
 
+            # check if any of those are direct dependencues
             for nested_dep in nested_deps:
+                # if so, remove them
                 if nested_dep in project_deps:
+                    debug("--Project {0}-- Removed transitive dependency: {1} (via {2})".format(self.name, nested_dep.name, dep.name))
                     project_deps.remove(nested_dep)
 
         eliminated_deps = len(self.dependant_projects) - len(project_deps)
         if eliminated_deps != 0:
             debug("--Project {0}-- Eliminated {1} transitive dependencies. Was {2}. Reduced to {3}".format(self.name, eliminated_deps, len(self.dependant_projects), len(project_deps)))
-            for removee in self.dependant_projects:
-                if removee not in project_deps:
-                    debug("--Project {0}-- Removed dependency: {1}".format(self.name, removee.name))
 
         self.dependant_projects = project_deps
 
