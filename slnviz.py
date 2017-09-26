@@ -102,7 +102,7 @@ class Project(object):
 
                 # track missing dep
                 missing_project_id = "Missing_" + id.replace("-", "")
-                project = Project(missing_project_id, missing_project_id, missing_project_id)
+                project = Project(missing_project_id, missing_project_id, id)
                 project.is_missing_project = True
                 projects.append(project)
                 
