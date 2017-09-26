@@ -52,7 +52,9 @@ class Project(object):
         return self.name.replace(".", "_").replace("-","_")
 
     def add_dependency(self, id):
-        self.dependant_ids.append(id)
+        id = str.upper(id)
+        if id not in self.dependant_ids:
+            self.dependant_ids.append(id)
 
     def get_full_project_file_path(self):
         return os.path.join(solution_path, get_unix_path(self.filename))
