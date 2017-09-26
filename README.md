@@ -9,21 +9,21 @@ msbuild build-dependencies and graphs.
 
 slnviz in a nutshell:
 
-- command-line driven
-- exports a [GraphViz](http://graphviz.org/) DOT-file from a visual studio SLN-file.
-- highlights projects with dependencies which are not found in solution.
+- command-line driven.
+- exports a [GraphViz](http://graphviz.org/) DOT-file from a Visual Studio SLN-file.
+- highlights projects whose dependencies are not found in the solution.
 - ability to filter redundant transistive dependencies.
-- ability to exclude certain kinds of project (test, shared, etc) from
+- ability to exclude certain kinds of projects (test, shared, etc) from
   graph.
 
 ## dependencies
 
 ### python
 
-slnviz is written in Python and targets python 3. No additional modules needs to
+slnviz is written in Python and targets Python 3. No additional modules needs to
 be installed.
 
-It seems to work with python 2.7 too, but that's not a supported target.
+It seems to work with Python 2.7 as well, but that's not a supported target.
 
 ### graphviz
 
@@ -43,7 +43,7 @@ dot -Tsvg -o your_solution.svg your_solution.dot
 # open svg-file in your preferred viewer
 ````
 
-To list all parameters use the `-h` flag:
+To list all parameters and options use the `-h` flag:
 
 ````sh
 ./slnviz.py -h
