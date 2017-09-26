@@ -63,3 +63,35 @@ EndProject
 
         # has proper labels
         self.assertEqual(True, "label=\"Project.SO.Main\"" in txt)
+
+    def test_eliminate_dependencies(self):
+        a = slnviz.Project("A", "A.csproj", "A")
+        b = slnviz.Project("B", "B.csproj", "B")
+        c = slnviz.Project("C", "C.csproj", "C")
+        d = slnviz.Project("D", "D.csproj", "D")
+
+        a.dependant_projects = [b,c,d]
+        b.dependant_projects = [c,d]
+        c.dependant_projects = [d]
+
+        a.remove_transitive_dependencies()
+        b.remove_transitive_dependencies()
+        c.remove_transitive_dependencies()
+
+        self.assertEqual([b], a.dependant_projects)
+        self.assertEqual([c], b.dependant_projects)
+        self.assertEqual([d], c.dependant_projects)
+
+    def test_dependency_chains(self):
+        a = slnviz.Project("A", "A.csproj", "A")
+        b = slnviz.Project("B", "B.csproj", "B")
+        c = slnviz.Project("C", "C.csproj", "C")
+        d = slnviz.Project("D", "D.csproj", "D")
+
+        a.dependant_projects = [b]
+        b.dependant_projects = [c]
+        c.dependant_projects = [d]
+
+        all_deps = a.get_nested_dependencies()
+        self.assertEqual([b,c,d], all_deps)
+        
