@@ -125,7 +125,9 @@ class Project(object):
         self.dependant_projects = project_deps
 
     def get_nested_dependencies(self):
-        total_deps = self.dependant_projects
+        # clone to new list, don't modify the existing list!
+        # that means -adding- dependencies when we want to remove them!
+        total_deps = self.dependant_projects[:]
 
         for dep in self.dependant_projects:
             dep_deps = dep.get_nested_dependencies()
