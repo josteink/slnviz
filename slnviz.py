@@ -167,6 +167,9 @@ def get_lines_from_file(file):
 project_declaration = re.compile("\s*Project\(\"{.*}\"\) = \"(.*)\", \"(.*)\", \"{(.*)}\"")
 project_dependency_declaration = re.compile("\s*{(.*)} = {(.*)}")
 
+def sort_projects(projects):
+    projects.sort(key = lambda x: x.name)
+
 
 def analyze_projects_in_solution(lines):
 
@@ -198,7 +201,12 @@ def analyze_projects_in_solution(lines):
     # all projects & dependencies should now be known. lets analyze them
     for project in projects:
         project.resolve_projects_from_ids(projects)
-                
+
+    # format results in a alphabetical order
+    sort_projects(projects)
+    for project in projects:
+        sort_projects(project.dependant_projects)
+        
     return projects
 
 
