@@ -34,7 +34,7 @@ like [viz-js](http://viz-js.com/).
 
 ## usage
 
-The following example shows how to slnviz is intended to be used:
+The following example shows how slnviz is intended to be used:
 
 ````sh
 git clone https://github.com/josteink/slnviz
