@@ -94,4 +94,20 @@ EndProject
 
         all_deps = a.get_nested_dependencies()
         self.assertEqual([b,c,d], all_deps)
+
+    def test_project_highlighting(self):
+        a = slnviz.Project("A", "A.csproj", "A")
+        b1 = slnviz.Project("B1", "B1.csproj", "B1")
+        b2 = slnviz.Project("B2", "B2.csproj", "B2")
+        c = slnviz.Project("C", "C.csproj", "C")
+
+        a.dependant_projects = [b1, b2]
+        b1.dependant_projects = [c]
+
+        c.highlight = True
+        
+        self.assertEqual(True, a.has_highlighted_dependencies())
+        self.assertEqual(True, b1.has_highlighted_dependencies())
+        self.assertEqual(False, b2.has_highlighted_dependencies())
+        self.assertEqual(False, c.has_highlighted_dependencies())
         

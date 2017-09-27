@@ -151,6 +151,13 @@ class Project(object):
 
         return total_deps
 
+    def has_highlighted_dependencies(self):
+        allDeps = self.get_nested_dependencies()
+        for dep in allDeps:
+            if dep.highlight:
+                return True
+        return False
+
 
 def get_project_by_id(id, projects):
     for project in projects:
@@ -235,7 +242,7 @@ def highlight_projects(rx, projects):
             project.highlight = True
 
 
-def render_dot_file(projects):
+def render_dot_file(projects, highlight_all=False):
     lines = []
 
     lines.append("digraph {")
@@ -277,7 +284,7 @@ def render_dot_file(projects):
             else:
               proj2_id = proj2.get_friendly_id()
               styling = ""
-              if proj2.highlight:
+              if proj2.highlight or (highlight_all and proj2.has_highlighted_dependencies()):
                   styling = " [color=\"#30c2c2\"]"
               elif proj2.is_missing_project:
                   styling = " [color=\"#f22430\"]"
@@ -289,7 +296,7 @@ def render_dot_file(projects):
     return "\n".join(lines)
 
 
-def process(sln_file, dot_file, exclude, highlight, keep_deps):
+def process(sln_file, dot_file, exclude, highlight, highlight_all, keep_deps):
     set_working_basedir(sln_file)
     lines = get_lines_from_file(sln_file)
     projects = analyze_projects_in_solution(lines)
@@ -308,7 +315,7 @@ def process(sln_file, dot_file, exclude, highlight, keep_deps):
         highlighter = re.compile(str.lower(highlight))
         highlight_projects(highlighter, projects)
         
-    txt = render_dot_file(projects)
+    txt = render_dot_file(projects, highlight_all)
     
     with open(dot_file, 'w') as f:
         f.write(txt)
@@ -326,12 +333,13 @@ def main():
     p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     p.add_argument("--exclude", "-e", help="Filter projects matching this expression from the graph")
     p.add_argument("--highlight", help="Highlights projects matching this expression in the graph")
+    p.add_argument("--highlight-all", action="store_true", help="Highlight all paths leading to a highlighted project")
 
     args = p.parse_args()
 
     debug_output = args.verbose
     
-    process(args.input, args.output, args.exclude, args.highlight, args.keep_declared_deps)
+    process(args.input, args.output, args.exclude, args.highlight, args.highlight_all, args.keep_declared_deps)
     
 
 # don't run from unit-tests
