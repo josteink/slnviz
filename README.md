@@ -15,6 +15,7 @@ slnviz in a nutshell:
 - ability to filter redundant transistive dependencies.
 - ability to exclude certain kinds of projects (test, shared, etc) from
   graph.
+- ability to highlight specific projects, and dependency-paths in the graph.
 
 ## dependencies
 
