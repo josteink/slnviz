@@ -45,6 +45,7 @@ class Project(object):
         self.missing_project_ids = []
         self.has_missing_projects = False
         self.is_missing_project = False
+        self.highlight = False
 
     def filter_id(self, id):
         return id.replace("-", "")
@@ -226,7 +227,14 @@ def filter_projects(rx, projects):
 
     return result
 
-        
+
+def highlight_projects(rx, projects):
+    for project in projects:
+        if rx.match(str.lower(project.name)):
+            debug("Highlighting project {0}".format(project.name))
+            project.highlight = True
+
+
 def render_dot_file(projects):
     lines = []
 
@@ -249,7 +257,9 @@ def render_dot_file(projects):
         id = project.get_friendly_id()
 
         styling = ""
-        if project.is_missing_project:
+        if project.highlight:
+            styling = " fillcolor=\"#30c2c2\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+        elif project.is_missing_project:
             styling = " fillcolor=\"#f22430\" style=filled color=\"#000000\" fontcolor=\"#000000\""
         elif project.has_missing_projects:
             styling = " fillcolor=\"#c2c230\" style=filled color=\"#000000\" fontcolor=\"#000000\""
@@ -267,7 +277,9 @@ def render_dot_file(projects):
             else:
               proj2_id = proj2.get_friendly_id()
               styling = ""
-              if proj2.is_missing_project:
+              if proj2.highlight:
+                  styling = " [color=\"#30c2c2\"]"
+              elif proj2.is_missing_project:
                   styling = " [color=\"#f22430\"]"
               lines.append("    {0} -> {1}{2}".format(proj1_id, proj2_id, styling))
     
@@ -277,17 +289,24 @@ def render_dot_file(projects):
     return "\n".join(lines)
 
 
-def process(sln_file, dot_file, exclude, keep_deps):
+def process(sln_file, dot_file, exclude, highlight, keep_deps):
     set_working_basedir(sln_file)
     lines = get_lines_from_file(sln_file)
     projects = analyze_projects_in_solution(lines)
 
     if not keep_deps:
+        debug("Removing redundant dependencies...")
         remove_transitive_dependencies(projects)
 
     if exclude:
-        excluder = re.compile(exclude)
+        debug("Excluding projects...")
+        excluder = re.compile(str.lower(exclude))
         projects = filter_projects(excluder, projects)
+
+    if highlight:
+        debug("Highlighting projects...")
+        highlighter = re.compile(str.lower(highlight))
+        highlight_projects(highlighter, projects)
         
     txt = render_dot_file(projects)
     
@@ -305,13 +324,14 @@ def main():
     p.add_argument("--output", "-o", help="The file to write to.")
     p.add_argument("--keep-declared-deps", "-k", action="store_true", help="Don't remove redundant, transisitive dependencies in post-processing.")
     p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
-    p.add_argument("--exclude", "-e", help="Filter projects matching this expresison from the graph")
+    p.add_argument("--exclude", "-e", help="Filter projects matching this expression from the graph")
+    p.add_argument("--highlight", help="Highlights projects matching this expression in the graph")
 
     args = p.parse_args()
 
     debug_output = args.verbose
     
-    process(args.input, args.output, args.exclude, args.keep_declared_deps)
+    process(args.input, args.output, args.exclude, args.highlight, args.keep_declared_deps)
     
 
 # don't run from unit-tests
