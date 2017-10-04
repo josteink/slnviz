@@ -103,14 +103,15 @@ class Project(object):
         for id in self.dependant_ids:
             project = get_project_by_id(id, projects)
             if project is None:
-                self.has_missing_projects = True
-                self.missing_project_ids.append(id)
-
-                # track missing dep
+                # track missing deps consistently
                 missing_project_id = "Missing_" + id.replace("-", "")
                 project = Project(missing_project_id, missing_project_id, id)
                 project.is_missing_project = True
                 projects.append(project)
+
+            if project.is_missing_project:
+                self.has_missing_projects = True
+                self.missing_project_ids.append(id)
 
             self.dependant_projects.append(project)
 

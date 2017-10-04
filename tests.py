@@ -110,3 +110,27 @@ EndProject
         self.assertEqual(True, b1.has_highlighted_dependencies())
         self.assertEqual(False, b2.has_highlighted_dependencies())
         self.assertEqual(False, c.has_highlighted_dependencies())
+
+    def test_missing_shared_transitive_dependencies(self):
+        a = slnviz.Project("A", "A.csproj", "A")
+        b = slnviz.Project("B", "B.csproj", "B")
+
+        a.add_dependency("B")
+        a.add_dependency("C")
+        b.add_dependency("C")
+
+        projects = [a, b]
+        a.resolve_projects_from_ids(projects)
+        b.resolve_projects_from_ids(projects)
+
+        self.assertEqual(True, a.has_missing_projects)
+        self.assertEqual(True, b.has_missing_projects)
+
+        self.assertEqual(["C"], a.missing_project_ids)
+        self.assertEqual(["C"], b.missing_project_ids)
+
+        # TODO: test with eliminated transisitive deps.
+
+
+if __name__ == "__main__":
+    unittest.main()
