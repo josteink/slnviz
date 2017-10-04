@@ -12,28 +12,33 @@ import os
 import xml.etree.ElementTree as ET
 
 debug_output = False
+solution_path = "."
+
+project_reference_declaration = re.compile("{(.*)}")
+project_declaration = re.compile("\s*Project\(\"{.*}\"\) = \"(.*)\", \"(.*)\", \"{(.*)}\"")
+project_dependency_declaration = re.compile("\s*{(.*)} = {(.*)}")
+
+
 def debug(txt):
     global debug_output
     if debug_output:
         print(txt)
-        
+
+
 def get_unix_path(file):
     return file.replace("\\", "/")
 
 
-solution_path = "."
-
 def get_directory(file):
     unix_file = get_unix_path(file)
     return os.path.split(unix_file)[0]
+
 
 def set_working_basedir(sln_file):
     global solution_path
     solution_path = get_directory(get_unix_path(sln_file))
     debug("Base-solution dir set to {0}".format(solution_path))
 
-
-project_reference_declaration = re.compile("{(.*)}")
 
 class Project(object):
     def __init__(self, name, filename, id):
@@ -51,7 +56,7 @@ class Project(object):
         return id.replace("-", "")
 
     def get_friendly_id(self):
-        return self.name.replace(".", "_").replace("-","_")
+        return self.name.replace(".", "_").replace("-", "_")
 
     def add_dependency(self, id):
         id = str.upper(id)
@@ -72,18 +77,18 @@ class Project(object):
         result = []
         for node in nodes:
             for elem in node.getiterator():
-              if "Project" in elem.tag:
-                  match = project_reference_declaration.match(elem.text)
-                  if match:
-                      result.append(match.groups()[0].upper())
+                if "Project" in elem.tag:
+                    match = project_reference_declaration.match(elem.text)
+                    if match:
+                        result.append(match.groups()[0].upper())
         return result
-        
+
     def get_declared_project_dependency_ids(self):
         xml_proj = self.get_full_project_file_path()
         if not os.path.isfile(xml_proj):
             print("--Project {0}-- Couldn't open project-file '{1}'".format(self.name, xml_proj))
             return []
-        
+
         xml_doc = ET.parse(xml_proj).getroot()
         nodes = self.get_project_references(xml_doc)
         ids = self.get_project_ids(nodes)
@@ -106,16 +111,16 @@ class Project(object):
                 project = Project(missing_project_id, missing_project_id, id)
                 project.is_missing_project = True
                 projects.append(project)
-                
+
             self.dependant_projects.append(project)
 
     def remove_transitive_dependencies(self):
         # if A depends on B & C, and
         # B also depends on C, then
         # A has a transitive dependency on C through B.
-    
+
         # This is a dependency which can be eliminated to clean up the graph.
-        
+
         # clone list to have separate object to work on
         project_deps = self.dependant_projects[:]
 
@@ -165,6 +170,7 @@ def get_project_by_id(id, projects):
             return project
     return None
 
+
 def get_lines_from_file(file):
     with open(file, 'r') as f:
         contents = f.read()
@@ -172,11 +178,8 @@ def get_lines_from_file(file):
         return lines
 
 
-project_declaration = re.compile("\s*Project\(\"{.*}\"\) = \"(.*)\", \"(.*)\", \"{(.*)}\"")
-project_dependency_declaration = re.compile("\s*{(.*)} = {(.*)}")
-
 def sort_projects(projects):
-    projects.sort(key = lambda x: x.name)
+    projects.sort(key=lambda x: x.name)
 
 
 def analyze_projects_in_solution(lines):
@@ -214,7 +217,7 @@ def analyze_projects_in_solution(lines):
     sort_projects(projects)
     for project in projects:
         sort_projects(project.dependant_projects)
-        
+
     return projects
 
 
@@ -251,7 +254,7 @@ def render_dot_file(projects, highlight_all=False):
     lines.append("    # apply theme")
     lines.append("    bgcolor=\"#222222\"")
     lines.append("")
-    lines.append("    // defaults for edges and nodes can be specified")    
+    lines.append("    // defaults for edges and nodes can be specified")
     lines.append("    node [ color=\"#ffffff\" fontcolor=\"#ffffff\" ]")
     lines.append("    edge [ color=\"#ffffff\" ]")
     lines.append("")
@@ -270,7 +273,7 @@ def render_dot_file(projects, highlight_all=False):
             styling = " fillcolor=\"#f22430\" style=filled color=\"#000000\" fontcolor=\"#000000\""
         elif project.has_missing_projects:
             styling = " fillcolor=\"#c2c230\" style=filled color=\"#000000\" fontcolor=\"#000000\""
-            
+
         lines.append("    {0} [ label=\"{1}\" {2} ]".format(id, project.name, styling))
 
     # apply dependencies
@@ -289,10 +292,10 @@ def render_dot_file(projects, highlight_all=False):
               elif proj2.is_missing_project:
                   styling = " [color=\"#f22430\"]"
               lines.append("    {0} -> {1}{2}".format(proj1_id, proj2_id, styling))
-    
+
     lines.append("")
     lines.append("}")
-    
+
     return "\n".join(lines)
 
 
@@ -314,9 +317,9 @@ def process(sln_file, dot_file, exclude, highlight, highlight_all, keep_deps):
         debug("Highlighting projects...")
         highlighter = re.compile(str.lower(highlight))
         highlight_projects(highlighter, projects)
-        
+
     txt = render_dot_file(projects, highlight_all)
-    
+
     with open(dot_file, 'w') as f:
         f.write(txt)
 
@@ -325,7 +328,7 @@ def process(sln_file, dot_file, exclude, highlight, highlight_all, keep_deps):
 
 def main():
     global debug_output
-    
+
     p = ArgumentParser()
     p.add_argument("--input", "-i", help="The file to analyze.")
     p.add_argument("--output", "-o", help="The file to write to.")
@@ -338,9 +341,9 @@ def main():
     args = p.parse_args()
 
     debug_output = args.verbose
-    
+
     process(args.input, args.output, args.exclude, args.highlight, args.highlight_all, args.keep_declared_deps)
-    
+
 
 # don't run from unit-tests
 if __name__ == "__main__":

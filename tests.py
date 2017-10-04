@@ -1,6 +1,7 @@
 import unittest
 import slnviz
 
+
 class Tests(unittest.TestCase):
     def test_parse_project_declaration_regexp(self):
         decl = "	Project(\"{2150E333-8FDC-42A3-9474-1A3956D46DE8}\") = \"License\", \"License\", \"{A96EA6A0-2464-416D-8E69-3A06A7288A60}\""
@@ -14,7 +15,7 @@ class Tests(unittest.TestCase):
 
     def test_parse_project_dependency_regexp(self):
         decl = "		{62AB4DC9-9913-4686-9F66-4BD3F4C7B119} = {62AB4DC9-9913-4686-9F66-4BD3F4C7B119}"
-        
+
         m = slnviz.project_dependency_declaration.match(decl)
 
         self.assertNotEqual(None, m)
@@ -44,7 +45,6 @@ EndProject
         self.assertEqual(1, len(projs[1].dependant_ids))
 
     def test_project_id(self):
-
         proj = slnviz.Project("SuperOffice.Test.Name", "stn.csproj", "123-234-345")
 
         self.assertEqual("SuperOffice_Test_Name", proj.get_friendly_id())
@@ -70,8 +70,8 @@ EndProject
         c = slnviz.Project("C", "C.csproj", "C")
         d = slnviz.Project("D", "D.csproj", "D")
 
-        a.dependant_projects = [b,c,d]
-        b.dependant_projects = [c,d]
+        a.dependant_projects = [b, c, d]
+        b.dependant_projects = [c, d]
         c.dependant_projects = [d]
 
         a.remove_transitive_dependencies()
@@ -93,7 +93,7 @@ EndProject
         c.dependant_projects = [d]
 
         all_deps = a.get_nested_dependencies()
-        self.assertEqual([b,c,d], all_deps)
+        self.assertEqual([b, c, d], all_deps)
 
     def test_project_highlighting(self):
         a = slnviz.Project("A", "A.csproj", "A")
@@ -105,9 +105,8 @@ EndProject
         b1.dependant_projects = [c]
 
         c.highlight = True
-        
+
         self.assertEqual(True, a.has_highlighted_dependencies())
         self.assertEqual(True, b1.has_highlighted_dependencies())
         self.assertEqual(False, b2.has_highlighted_dependencies())
         self.assertEqual(False, c.has_highlighted_dependencies())
-        
