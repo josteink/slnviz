@@ -1,6 +1,8 @@
 
 # slnviz
 
+![Build status](https://api.travis-ci.org/josteink/slnviz.svg?branch=master)
+
 slnviz is a command-line utility to help visualize Visual Studio and
 msbuild build-dependencies and graphs.
 
