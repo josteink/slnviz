@@ -290,7 +290,7 @@ def render_dot_file(projects, highlight_all=False):
               styling = ""
               if proj2.highlight or (highlight_all and proj2.has_highlighted_dependencies()):
                   styling = " [color=\"#30c2c2\"]"
-              elif proj2.is_missing_project:
+              elif proj2.is_missing_project or (project.has_missing_projects and proj2.has_missing_projects):
                   styling = " [color=\"#f22430\"]"
               lines.append("    {0} -> {1}{2}".format(proj1_id, proj2_id, styling))
 
