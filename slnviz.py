@@ -47,6 +47,7 @@ class Project(object):
         self.id = id
         self.dependant_ids = []
         self.dependant_projects = []
+        self.declared_dependant_projects = []
         self.missing_project_ids = []
         self.has_missing_projects = False
         self.is_missing_project = False
@@ -115,6 +116,8 @@ class Project(object):
 
             self.dependant_projects.append(project)
 
+        self.declared_dependant_projects = self.dependant_projects
+
     def remove_transitive_dependencies(self):
         # if A depends on B & C, and
         # B also depends on C, then
@@ -163,6 +166,14 @@ class Project(object):
             if dep.highlight:
                 return True
         return False
+
+    def has_declared_highlighted_dependencies(self):
+        declaredDeps = self.declared_dependant_projects
+        for dep in declaredDeps:
+            if dep.highlight:
+                return True
+        return False
+        
 
 
 def get_project_by_id(id, projects):
@@ -288,7 +299,7 @@ def render_dot_file(projects, highlight_all=False):
             else:
               proj2_id = proj2.get_friendly_id()
               styling = ""
-              if proj2.highlight or (highlight_all and proj2.has_highlighted_dependencies()):
+              if proj2.highlight or proj2.has_declared_highlighted_dependencies() or (highlight_all and proj2.has_highlighted_dependencies()):
                   styling = " [color=\"#30c2c2\"]"
               elif proj2.is_missing_project or (project.has_missing_projects and proj2.has_missing_projects):
                   styling = " [color=\"#f22430\"]"

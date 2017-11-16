@@ -111,6 +111,23 @@ EndProject
         self.assertEqual(False, b2.has_highlighted_dependencies())
         self.assertEqual(False, c.has_highlighted_dependencies())
 
+    def test_declared_dependencies_generates_highlight_even_though_dependency_is_eliminated_as_transitive(self):
+        a = slnviz.Project("A", "A.csproj", "A")
+        b = slnviz.Project("B", "B.csproj", "B")
+        c = slnviz.Project("C", "C.csproj", "C")
+
+        a.dependant_projects = [b]
+        b.dependant_projects = [c]
+        # for a, c is a declared, transitive dependency which will normally be eliminated
+        # in visualization.
+        a.declared_dependant_projects = [b,c]
+        b.declared_dependant_projects = [c]
+
+        c.highlight = True
+
+        hasDep = a.has_declared_highlighted_dependencies()
+        self.assertEqual(True, hasDep)
+        
     def test_missing_shared_transitive_dependencies(self):
         a = slnviz.Project("A", "A.csproj", "A")
         b = slnviz.Project("B", "B.csproj", "B")
