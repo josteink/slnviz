@@ -1,3 +1,8 @@
+# manually created rules, for sanity
+
+*.dot
+*.svg
+*.png
 
 # Created by https://www.gitignore.io/api/linux,emacs,python,windows
 
