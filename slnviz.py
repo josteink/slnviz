@@ -78,7 +78,7 @@ class Project(object):
         result = []
         for node in nodes:
             for elem in node.getiterator():
-                if "Project" in elem.tag:
+                if "Project" in elem.tag and elem.text:
                     match = project_reference_declaration.match(elem.text)
                     if match:
                         result.append(match.groups()[0].upper())
