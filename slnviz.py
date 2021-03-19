@@ -18,6 +18,55 @@ project_reference_declaration = re.compile("{(.*)}")
 project_declaration = re.compile("\s*Project\(\"{.*}\"\) = \"(.*)\", \"(.*)\", \"{(.*)}\"")
 project_dependency_declaration = re.compile("\s*{(.*)} = {(.*)}")
 
+# Available themes to select
+themes = {
+    'dark': {
+        'bgcolor': '#222222',
+        'project.linecolor': '#ffffff',
+        'project.fontcolor': '#ffffff',
+        'dependency.color': '#ffffff',
+
+        'project.highlight.style': 'filled',
+        'project.highlight.fillcolor': '#30c2c2',
+        'project.highlight.linecolor': '#000000',
+        'project.highlight.fontcolor': '#000000',
+
+        'project.is_missing_project.style': 'filled',
+        'project.is_missing_project.fillcolor': '#f22430',
+        'project.is_missing_project.linecolor': '#000000',
+        'project.is_missing_project.fontcolor': '#000000',
+
+        'project.has_missing_projects.style': 'filled',
+        'project.has_missing_projects.fillcolor': '#c2c230',
+        'project.has_missing_projects.linecolor': '#000000',
+        'project.has_missing_projects.fontcolor': '#000000',
+    },
+    'light': {
+        'bgcolor': '#ffffff',
+        'project.linecolor': '#222222',
+        'project.fontcolor': '#222222',
+        'dependency.color': '#222222',
+
+        'project.highlight.style': 'filled',
+        'project.highlight.fillcolor': '#30c2c2',
+        'project.highlight.linecolor': '#222222',
+        'project.highlight.fontcolor': '#222222',
+
+        'project.is_missing_project.style': 'filled',
+        'project.is_missing_project.fillcolor': '#f22430',
+        'project.is_missing_project.linecolor': '#222222',
+        'project.is_missing_project.fontcolor': '#222222',
+
+        'project.has_missing_projects.style': 'filled',
+        'project.has_missing_projects.fillcolor': '#c2c230',
+        'project.has_missing_projects.linecolor': '#222222',
+        'project.has_missing_projects.fontcolor': '#222222',
+    }
+}
+
+# Apply default theme to the style attributes
+style_attributes = themes['dark']
+
 
 def debug(txt):
     global debug_output
@@ -264,11 +313,16 @@ def render_dot_file(projects, highlight_all=False):
     lines.append("    rankdir=\"TB\"")
     lines.append("")
     lines.append("    # apply theme")
-    lines.append("    bgcolor=\"#222222\"")
+    lines.append("    bgcolor=\"{0}\"".format(style_attributes['bgcolor']))
     lines.append("")
     lines.append("    // defaults for edges and nodes can be specified")
-    lines.append("    node [ color=\"#ffffff\" fontcolor=\"#ffffff\" ]")
-    lines.append("    edge [ color=\"#ffffff\" ]")
+    lines.append("    node [ color=\"{0}\" fontcolor=\"{1}\" ]".format(
+        style_attributes['project.linecolor'],
+        style_attributes['project.fontcolor']
+    ))
+    lines.append("    edge [ color=\"{0}\" ]".format(
+        style_attributes['dependency.color']
+    ))
     lines.append("")
     lines.append("    # project declarations")
 
@@ -280,11 +334,26 @@ def render_dot_file(projects, highlight_all=False):
 
         styling = ""
         if project.highlight:
-            styling = " fillcolor=\"#30c2c2\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+            styling = " fillcolor=\"{0}\" style={1} color=\"{2}\" fontcolor=\"#000000\"".format(
+                style_attributes['project.highlight.fillcolor'],
+                style_attributes['project.highlight.style'],
+                style_attributes['project.highlight.linecolor'],
+                style_attributes['project.highlight.fontcolor']
+            )
         elif project.is_missing_project:
-            styling = " fillcolor=\"#f22430\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+            styling = " fillcolor=\"{0}\" style={1} color=\"{2}\" fontcolor=\"#000000\"".format(
+                style_attributes['project.is_missing_project.fillcolor'],
+                style_attributes['project.is_missing_project.style'],
+                style_attributes['project.is_missing_project.linecolor'],
+                style_attributes['project.is_missing_project.fontcolor']
+            )
         elif project.has_missing_projects:
-            styling = " fillcolor=\"#c2c230\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+            styling = " fillcolor=\"{0}\" style={1} color=\"{2}\" fontcolor=\"#000000\"".format(
+                style_attributes['project.has_missing_projects.fillcolor'],
+                style_attributes['project.has_missing_projects.style'],
+                style_attributes['project.has_missing_projects.linecolor'],
+                style_attributes['project.has_missing_projects.fontcolor']
+            )
 
         lines.append("    {0} [ label=\"{1}\" {2} ]".format(id, project.name, styling))
 
@@ -300,9 +369,9 @@ def render_dot_file(projects, highlight_all=False):
               proj2_id = proj2.get_friendly_id()
               styling = ""
               if proj2.highlight or proj2.has_declared_highlighted_dependencies() or (highlight_all and proj2.has_highlighted_dependencies()):
-                  styling = " [color=\"#30c2c2\"]"
+                  styling = " [color=\"{0}\"]".format(style_attributes['project.highlight.fillcolor'])
               elif proj2.is_missing_project or (project.has_missing_projects and proj2.has_missing_projects):
-                  styling = " [color=\"#f22430\"]"
+                  styling = " [color=\"{0}\"]".format(style_attributes['project.is_missing_project.fillcolor'])
               lines.append("    {0} -> {1}{2}".format(proj1_id, proj2_id, styling))
 
     lines.append("")
@@ -338,22 +407,47 @@ def process(sln_file, dot_file, exclude, highlight, highlight_all, keep_deps):
     print("Wrote output-file '{0}'.".format(dot_file))
 
 
+def set_style(theme, attributes):
+    global style_attributes
+
+    if not theme:
+        theme = 'dark'
+
+    debug("Using {0} theme".format(theme))
+    style_attributes = themes[theme]
+
+    if attributes:
+        for attr in attributes:
+            name, value = attr
+            if name not in style_attributes:
+                print("WARNING: Unknown style attribute defined: {0}".format(name))
+            else:
+                debug("Overriding style {0}".format(name))
+                style_attributes[name] = value
+
+
 def main():
     global debug_output
 
     p = ArgumentParser()
     p.add_argument("--input", "-i", help="The file to analyze.")
     p.add_argument("--output", "-o", help="The file to write to.")
-    p.add_argument("--keep-declared-deps", "-k", action="store_true", help="Don't remove redundant, transisitive dependencies in post-processing.")
+    p.add_argument("--keep-declared-deps", "-k", action="store_true",
+                   help="Don't remove redundant, transisitive dependencies in post-processing.")
     p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     p.add_argument("--exclude", "-e", help="Filter projects matching this expression from the graph")
     p.add_argument("--highlight", help="Highlights projects matching this expression in the graph")
     p.add_argument("--highlight-all", action="store_true", help="Highlight all paths leading to a highlighted project")
 
+    p.add_argument("--theme", "-t", help="select one of the defined themes")
+    p.add_argument("--style", "-s", action="append", nargs=2, metavar=("attribute", "value"),
+                   help="Provide style information for dot rendering")
+
     args = p.parse_args()
 
     debug_output = args.verbose
 
+    set_style(args.theme, args.style)
     process(args.input, args.output, args.exclude, args.highlight, args.highlight_all, args.keep_declared_deps)
 
 

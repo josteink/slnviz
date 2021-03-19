@@ -4,6 +4,9 @@
 *.svg
 *.png
 
+# Created by PyCharm
+.idea/
+
 # Created by https://www.gitignore.io/api/linux,emacs,python,windows
 
 ### Emacs ###
