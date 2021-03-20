@@ -10,6 +10,7 @@ from argparse import ArgumentParser
 import re
 import os
 import xml.etree.ElementTree as ET
+import enum
 
 debug_output = False
 solution_path = "."
@@ -67,11 +68,45 @@ themes = {
 # Apply default theme to the style attributes
 style_attributes = themes['dark']
 
+messages = []
+
+
+@enum.unique
+class MessageLevel(enum.Enum):
+    # Note that the values can/will be used as output
+    DEBUG = "DEBUG  "
+    INFO = "INFO   "
+    WARNING = "WARNING"
+    ERROR = "ERROR  "
+
+
+class Message:
+    def __init__(self, level: MessageLevel, text: str):
+        self.level = level
+        self.text = text
+
+
+def __log_message(message: Message):
+    messages.append(message)
+    print('{0}: {1}'.format(message.level.value, message.text))
+
+
+def log_info(text: str):
+    __log_message(Message(MessageLevel.INFO, text))
+
+
+def log_warning(text: str):
+    __log_message(Message(MessageLevel.WARNING, text))
+
+
+def log_error(text: str):
+    __log_message(Message(MessageLevel.ERROR, text))
+
 
 def debug(txt):
     global debug_output
     if debug_output:
-        print(txt)
+        __log_message(Message(MessageLevel.DEBUG, txt))
 
 
 def get_unix_path(file):
@@ -136,7 +171,7 @@ class Project(object):
     def get_declared_project_dependency_ids(self):
         xml_proj = self.get_full_project_file_path()
         if not os.path.isfile(xml_proj):
-            print("--Project {0}-- Couldn't open project-file '{1}'".format(self.name, xml_proj))
+            log_info("--Project {0}-- Couldn't open project-file '{1}'".format(self.name, xml_proj))
             return []
 
         xml_doc = ET.parse(xml_proj).getroot()
@@ -364,7 +399,7 @@ def render_dot_file(projects, highlight_all=False):
         proj1_id = project.get_friendly_id()
         for proj2 in project.dependant_projects:
             if proj2 is None:
-                print("WARNING: Unable to resolve dependency with ID {0} for project {1}".format(id, project.name))
+                log_warning("Unable to resolve dependency with ID {0} for project {1}".format(id, project.name))
             else:
               proj2_id = proj2.get_friendly_id()
               styling = ""
@@ -381,6 +416,7 @@ def render_dot_file(projects, highlight_all=False):
 
 
 def process(sln_file, dot_file, exclude, highlight, highlight_all, keep_deps):
+    log_info("Parsing: {0}".format(sln_file))
     set_working_basedir(sln_file)
     lines = get_lines_from_file(sln_file)
     projects = analyze_projects_in_solution(lines)
@@ -404,7 +440,7 @@ def process(sln_file, dot_file, exclude, highlight, highlight_all, keep_deps):
     with open(dot_file, 'w') as f:
         f.write(txt)
 
-    print("Wrote output-file '{0}'.".format(dot_file))
+    log_info("Wrote output-file '{0}'.".format(dot_file))
 
 
 def set_style(theme, attributes):
@@ -420,10 +456,16 @@ def set_style(theme, attributes):
         for attr in attributes:
             name, value = attr
             if name not in style_attributes:
-                print("WARNING: Unknown style attribute defined: {0}".format(name))
+                log_warning("Unknown style attribute defined: {0}".format(name))
             else:
                 debug("Overriding style {0}".format(name))
                 style_attributes[name] = value
+
+
+def write_logs(logfile: str, must_append: bool):
+    if logfile:
+        with open(logfile, "a" if must_append else "w") as log_file:
+            log_file.writelines(["{0}:{1}\n".format(msg.level.value, msg.text) for msg in messages])
 
 
 def main():
@@ -442,6 +484,8 @@ def main():
     p.add_argument("--theme", "-t", help="select one of the defined themes")
     p.add_argument("--style", "-s", action="append", nargs=2, metavar=("attribute", "value"),
                    help="Provide style information for dot rendering")
+    p.add_argument("--log", "-l", help="Log events to file")
+    p.add_argument("--logappend", "-la", action="store_true", help="Append logs to file")
 
     args = p.parse_args()
 
@@ -449,6 +493,7 @@ def main():
 
     set_style(args.theme, args.style)
     process(args.input, args.output, args.exclude, args.highlight, args.highlight_all, args.keep_declared_deps)
+    write_logs(args.log, args.logappend)
 
 
 # don't run from unit-tests
