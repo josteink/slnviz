@@ -171,7 +171,7 @@ class Project(object):
     def get_declared_project_dependency_ids(self):
         xml_proj = self.get_full_project_file_path()
         if not os.path.isfile(xml_proj):
-            log_info("--Project {0}-- Couldn't open project-file '{1}'".format(self.name, xml_proj))
+            log_warning("--Project {0}-- Couldn't open project-file '{1}'".format(self.name, xml_proj))
             return []
 
         xml_doc = ET.parse(xml_proj).getroot()
@@ -456,7 +456,7 @@ def set_style(theme, attributes):
         for attr in attributes:
             name, value = attr
             if name not in style_attributes:
-                log_warning("Unknown style attribute defined: {0}".format(name))
+                log_error("Unknown style attribute defined: {0}".format(name))
             else:
                 debug("Overriding style {0}".format(name))
                 style_attributes[name] = value
